@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useStore } from "../store";
 import type { Hotspot, Furniture, HotspotKind } from "@beachclub/shared/types";
+import type { OpenPin } from "./PinCard";
 
 const KIND_ICON: Record<HotspotKind, string> = {
   entry: "🚪",
@@ -12,7 +13,7 @@ const KIND_ICON: Record<HotspotKind, string> = {
   zone: "✦",
 };
 
-function HotspotPin({ h }: { h: Hotspot }) {
+function HotspotPin({ h, onOpen }: { h: Hotspot; onOpen: () => void }) {
   const [open, setOpen] = useState(false);
   return (
     <button
@@ -20,7 +21,10 @@ function HotspotPin({ h }: { h: Hotspot }) {
       style={{ left: `${h.x}%`, top: `${h.y}%` }}
       onPointerEnter={() => setOpen(true)}
       onPointerLeave={() => setOpen(false)}
-      onClick={(e) => e.stopPropagation()}
+      onClick={(e) => {
+        e.stopPropagation();
+        onOpen();
+      }}
     >
       <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-sm shadow-md ring-1 ring-black/10">
         {KIND_ICON[h.kind]}
@@ -78,22 +82,26 @@ function FurniturePin({
   );
 }
 
-export function MapPins({ focusZone }: { focusZone: string | null }) {
+export function MapPins({
+  focusZone,
+  onOpen,
+}: {
+  focusZone: string | null;
+  onOpen: (p: OpenPin) => void;
+}) {
   const venue = useStore((s) => s.venue);
   const reservedIds = useStore((s) => s.reservedIds);
   const step = useStore((s) => s.step);
   const furnitureId = useStore((s) => s.furnitureId);
-  const selectFurniture = useStore((s) => s.selectFurniture);
-  const setStep = useStore((s) => s.setStep);
   if (!venue) return null;
 
-  // Furniture pins are interactive on the furniture step (1).
+  // Furniture pins are emphasised on the furniture step (1).
   const furnitureActive = step === 1;
 
   return (
     <>
       {venue.hotspots.map((h) => (
-        <HotspotPin key={h.id} h={h} />
+        <HotspotPin key={h.id} h={h} onOpen={() => onOpen({ type: "hotspot", data: h })} />
       ))}
       {venue.furniture.map((f) => {
         const zoneFocused = !focusZone || f.zoneId === focusZone;
@@ -104,10 +112,7 @@ export function MapPins({ focusZone }: { focusZone: string | null }) {
             reserved={reservedIds.has(f.id)}
             selected={furnitureId === f.id}
             active={furnitureActive && zoneFocused}
-            onSelect={() => {
-              selectFurniture(f.id);
-              if (step === 0) setStep(1);
-            }}
+            onSelect={() => onOpen({ type: "furniture", data: f })}
           />
         );
       })}

@@ -7,6 +7,8 @@ import { LeftRail } from "../components/LeftRail";
 import { Topbar } from "../components/Topbar";
 import { ZoneTabs } from "../components/ZoneTabs";
 import { CartDrawer } from "../components/CartDrawer";
+import { PinCard, type OpenPin } from "../components/PinCard";
+import { AnimatePresence } from "framer-motion";
 import { useStore } from "../store";
 import { fetchInitial } from "../ws";
 import type { Venue } from "@beachclub/shared/types";
@@ -17,6 +19,7 @@ export function Booking() {
   const setStep = useStore((s) => s.setStep);
   const [focusZone, setFocusZone] = useState<string | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
+  const [openPin, setOpenPin] = useState<OpenPin>(null);
 
   useEffect(() => {
     fetch("/api/venue").then((r) => r.json()).then((v: Venue) => setVenue(v));
@@ -26,8 +29,15 @@ export function Booking() {
   return (
     <div className="relative h-full w-full overflow-hidden">
       <AerialMap>
-        <MapPins focusZone={focusZone} />
+        <MapPins focusZone={focusZone} onOpen={setOpenPin} />
       </AerialMap>
+
+      {/* pin detail card (bottom-left, clear of the wizard panel) */}
+      <div className="absolute bottom-20 left-4 z-30">
+        <AnimatePresence>
+          {openPin && <PinCard open={openPin} onClose={() => setOpenPin(null)} />}
+        </AnimatePresence>
+      </div>
 
       {/* top bar: logo + stepper + cart/account */}
       <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-3 p-4">
