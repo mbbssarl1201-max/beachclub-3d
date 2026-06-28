@@ -1,56 +1,74 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { ClubScene } from "../scenes/ClubScene";
-import { ReserveModal } from "../components/ReserveModal";
+import { AerialMap } from "../components/AerialMap";
+import { MapPins } from "../components/MapPins";
+import { Stepper } from "../components/Stepper";
+import { WizardPanel } from "../components/WizardPanel";
+import { LeftRail } from "../components/LeftRail";
+import { Topbar } from "../components/Topbar";
+import { ZoneTabs } from "../components/ZoneTabs";
+import { CartDrawer } from "../components/CartDrawer";
 import { useStore } from "../store";
 import { fetchInitial } from "../ws";
-import type { Daybed } from "@beachclub/shared/types";
+import type { Venue } from "@beachclub/shared/types";
 
 export function Booking() {
-  const [daybeds, setDaybeds] = useState<Daybed[]>([]);
-  const [selected, setSelected] = useState<Daybed | null>(null);
-  const reservedIds = useStore((s) => s.reservedIds);
+  const setVenue = useStore((s) => s.setVenue);
+  const step = useStore((s) => s.step);
+  const setStep = useStore((s) => s.setStep);
+  const [focusZone, setFocusZone] = useState<string | null>(null);
+  const [cartOpen, setCartOpen] = useState(false);
 
   useEffect(() => {
-    fetch("/api/layout")
-      .then((r) => r.json())
-      .then(setDaybeds);
+    fetch("/api/venue").then((r) => r.json()).then((v: Venue) => setVenue(v));
     fetchInitial();
-  }, []);
+  }, [setVenue]);
 
   return (
-    <div className="relative h-full w-full">
-      <div className="absolute inset-0">
-        <ClubScene daybeds={daybeds} reservedIds={reservedIds} onSelect={setSelected} />
-      </div>
+    <div className="relative h-full w-full overflow-hidden">
+      <AerialMap>
+        <MapPins focusZone={focusZone} />
+      </AerialMap>
 
-      <header className="pointer-events-none absolute left-0 right-0 top-0 z-10 flex items-start justify-between p-6">
-        <div>
-          <h1 className="font-display text-4xl tracking-tight drop-shadow">Lagune</h1>
-          <p className="mt-1 max-w-xs text-sm text-white/80">
-            Choisissez votre transat dans le club. Tournez la vue, cliquez un emplacement libre.
-          </p>
+      {/* top bar: logo + stepper + cart/account */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-3 p-4">
+        <div className="pointer-events-auto">
+          <h1 className="font-display text-3xl leading-none drop-shadow">Lagune</h1>
+          <p className="text-[11px] text-white/70">Beach Club · Réservation</p>
         </div>
-        <Link
-          to="/kds"
-          className="glass pointer-events-auto rounded-full px-4 py-2 text-sm font-medium"
-        >
-          Écran bar / cuisine
-        </Link>
-      </header>
-
-      <div className="glass pointer-events-none absolute bottom-6 left-1/2 z-10 -translate-x-1/2 rounded-full px-5 py-2 text-sm">
-        <span className="mr-3">
-          <span className="mr-1 inline-block h-3 w-3 rounded-full align-middle" style={{ background: "#1fb6b0" }} />
-          libre
-        </span>
-        <span>
-          <span className="mr-1 inline-block h-3 w-3 rounded-full align-middle" style={{ background: "#7a7f87" }} />
-          réservé
-        </span>
+        <div className="hidden flex-1 justify-center md:flex">
+          <Stepper />
+        </div>
+        <Topbar onOpenCart={() => setCartOpen(true)} />
       </div>
 
-      {selected && <ReserveModal daybed={selected} onClose={() => setSelected(null)} />}
+      {/* mobile stepper */}
+      <div className="absolute inset-x-0 top-16 z-20 flex justify-center px-4 md:hidden">
+        <Stepper />
+      </div>
+
+      {/* left rail */}
+      <div className="absolute left-4 top-28 z-20">
+        <LeftRail />
+      </div>
+
+      {/* wizard panel (right) */}
+      <div className="absolute right-4 top-28 z-20 max-h-[70vh]">
+        <WizardPanel focusZone={focusZone} setFocusZone={setFocusZone} />
+      </div>
+
+      {/* bottom: zone tabs + book now */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex items-end justify-between gap-3 p-4">
+        <ZoneTabs focusZone={focusZone} setFocusZone={setFocusZone} />
+        <button
+          onClick={() => setStep(step === 0 ? 0 : step)}
+          className="glass pointer-events-auto flex items-center gap-3 rounded-full py-2 pl-4 pr-2 text-sm"
+        >
+          <span className="hidden sm:inline">Commencez votre réservation</span>
+          <span className="rounded-full bg-sunset px-4 py-2 font-semibold">Book Now</span>
+        </button>
+      </div>
+
+      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
     </div>
   );
 }

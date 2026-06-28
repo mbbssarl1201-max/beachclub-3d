@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { useStore, cartTotal } from "../store";
+import { useStore, linesTotal } from "../store";
 
 export function Cart({ daybedId }: { daybedId: string }) {
   const cart = useStore((s) => s.cart);
@@ -70,7 +70,7 @@ export function Cart({ daybedId }: { daybedId: string }) {
         <>
           <div className="mt-3 flex justify-between border-t border-white/15 pt-3 font-semibold">
             <span>Total</span>
-            <span>{cartTotal(cart)}.-</span>
+            <span>{linesTotal(cart)}.-</span>
           </div>
           <button
             onClick={order}

@@ -1,11 +1,11 @@
 import { test, expect, beforeEach } from "vitest";
-import { useStore, cartTotal } from "./store";
+import { useStore, linesTotal, promoDiscount } from "./store";
 import type { MenuItem } from "@beachclub/shared/types";
 
 const mojito: MenuItem = { id: "mojito", name: "Mojito", category: "cocktail", priceChf: 18 };
 
 beforeEach(() => {
-  useStore.setState({ reservedIds: new Set(), cart: [], orders: [] });
+  useStore.setState({ reservedIds: new Set(), cart: [], orders: [], addons: [] });
 });
 
 test("applyWsEvent reservation adds to reservedIds", () => {
@@ -26,9 +26,17 @@ test("applyWsEvent order prepends to orders", () => {
   expect(useStore.getState().orders[0]?.id).toBe("o1");
 });
 
-test("addLine merges quantity and cartTotal sums", () => {
+test("addLine merges quantity and linesTotal sums", () => {
   useStore.getState().addLine(mojito, 1);
   useStore.getState().addLine(mojito, 2);
   expect(useStore.getState().cart[0]?.qty).toBe(3);
-  expect(cartTotal(useStore.getState().cart)).toBe(54);
+  expect(linesTotal(useStore.getState().cart)).toBe(54);
+});
+
+test("addAddon and promoDiscount", () => {
+  useStore.getState().addAddon({ id: "champagne", name: "Champagne", category: "bottle", priceChf: 200 }, 1);
+  expect(linesTotal(useStore.getState().addons)).toBe(200);
+  expect(promoDiscount("SUNSET", 200)).toBe(30);
+  expect(promoDiscount("LAGUNE10", 200)).toBe(20);
+  expect(promoDiscount(null, 200)).toBe(0);
 });
