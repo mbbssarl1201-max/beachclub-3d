@@ -99,8 +99,8 @@ importers:
         specifier: ^0.38.0
         version: 0.38.4(@electric-sql/pglite@0.2.17)(@types/react@18.3.31)(postgres@3.4.9)(react@18.3.1)
       fastify:
-        specifier: ^5.2.0
-        version: 5.9.0
+        specifier: 5.8.0
+        version: 5.8.0
       ws:
         specifier: ^8.18.0
         version: 8.21.0
@@ -1758,8 +1758,8 @@ packages:
   fastify-plugin@5.1.0:
     resolution: {integrity: sha512-FAIDA8eovSt5qcDgcBvDuX/v0Cjz0ohGhENZ/wpc3y+oZCY2afZ9Baqql3g/lC+OHRnciQol4ww7tuthOb9idw==}
 
-  fastify@5.9.0:
-    resolution: {integrity: sha512-VMS5lE0zj+MZlJpQa3Qv5iGjfun0H2N7VRgoBwpcTNQ2bdIQpv7fDpb+HGteGbicBsGkzGS+X+hdx9mmrfWuHQ==}
+  fastify@5.8.0:
+    resolution: {integrity: sha512-bgkzPUOuzkM83AvR03UzCDC+Xunv0z2UMNyv3D5OkM1oTDVR7SLaVD0xgDgI8WS/n+QBo3ab4Thuyr+Ym6b3pQ==}
 
   fastq@1.20.1:
     resolution: {integrity: sha512-GGToxJ/w1x32s/D2EKND7kTil4n8OVk/9mycTc4VDza13lOvpUZTGX3mFSCtV9ksdGBVzvsyAVLM6mHFThxXxw==}
@@ -4128,7 +4128,7 @@ snapshots:
 
   fastify-plugin@5.1.0: {}
 
-  fastify@5.9.0:
+  fastify@5.8.0:
     dependencies:
       '@fastify/ajv-compiler': 4.0.5
       '@fastify/error': 4.2.0
