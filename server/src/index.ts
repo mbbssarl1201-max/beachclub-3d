@@ -3,6 +3,7 @@ import websocket from "@fastify/websocket";
 import { migrate } from "./db/client";
 import { registerApi } from "./routes/api";
 import { createHub, type Hub } from "./realtime/hub";
+import { attachVoiceProxy } from "./voice/geminiProxy";
 
 export async function buildServer(): Promise<{ app: FastifyInstance; hub: Hub }> {
   const app = Fastify({ logger: false });
@@ -20,6 +21,8 @@ export async function buildServer(): Promise<{ app: FastifyInstance; hub: Hub }>
       socket.on("close", off);
     });
   });
+
+  attachVoiceProxy(app, hub);
 
   return { app, hub };
 }
