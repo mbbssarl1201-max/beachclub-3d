@@ -1,0 +1,31 @@
+# Isolated production stack for the Beach Club 3D POC, behind the host-mode Traefik.
+# Deployed on the MBBS general VPS (76.13.55.44) — NOT the medical VPS.
+services:
+  beachclub:
+    image: ghcr.io/mbbssarl/beachclub-3d:latest
+    container_name: beachclub-3d
+    restart: unless-stopped
+    environment:
+      - PORT=3001
+      - PGLITE_DATA=/data
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - CLAUDE_MODEL=${CLAUDE_MODEL:-claude-opus-4-8}
+    volumes:
+      - beachclub_data:/data
+    networks:
+      - web
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=web
+      - traefik.http.routers.beachclub.rule=Host(`beachclub.mbbssarl.ch`)
+      - traefik.http.routers.beachclub.entrypoints=websecure
+      - traefik.http.routers.beachclub.tls.certresolver=le
+      - traefik.http.services.beachclub.loadbalancer.server.port=3001
+
+networks:
+  web:
+    external: true
+
+volumes:
+  beachclub_data: {}
