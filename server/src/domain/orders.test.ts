@@ -11,11 +11,11 @@ beforeEach(async () => {
 });
 
 test("empty cart rejected", async () => {
-  await expect(createOrder("bf1", [])).rejects.toBeInstanceOf(EmptyCartError);
+  await expect(createOrder("vo1", [])).rejects.toBeInstanceOf(EmptyCartError);
 });
 
 test("order total computed and persisted with status new", async () => {
-  const o = await createOrder("bf1", [
+  const o = await createOrder("vo1", [
     { itemId: "mojito", name: "Mojito", qty: 2, priceChf: 18 },
   ]);
   expect(o.totalChf).toBe(36);

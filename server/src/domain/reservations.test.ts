@@ -16,8 +16,8 @@ beforeEach(async () => {
 });
 
 test("second reservation of same daybed throws DaybedTakenError", async () => {
-  await createReservation("bf1", "A");
-  await expect(createReservation("bf1", "B")).rejects.toBeInstanceOf(DaybedTakenError);
+  await createReservation("vo1", "A");
+  await expect(createReservation("vo1", "B")).rejects.toBeInstanceOf(DaybedTakenError);
 });
 
 test("unknown daybed rejected", async () => {
@@ -25,7 +25,7 @@ test("unknown daybed rejected", async () => {
 });
 
 test("listReservedDaybedIds returns reserved ids", async () => {
-  await createReservation("bf1", "A");
-  await createReservation("cb1", "B");
-  expect((await listReservedDaybedIds()).sort()).toEqual(["bf1", "cb1"]);
+  await createReservation("vo1", "A");
+  await createReservation("gp1", "B");
+  expect((await listReservedDaybedIds()).sort()).toEqual(["gp1", "vo1"]);
 });

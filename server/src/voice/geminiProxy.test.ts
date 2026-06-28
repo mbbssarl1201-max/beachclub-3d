@@ -11,7 +11,7 @@ test("passer_commande delegates to Claude brain and returns reply + cart", async
 
   const out = await handleGeminiFunctionCall(
     { name: "passer_commande", args: { texte: "deux mojitos" } },
-    { daybedId: "bf1", cart: [] },
+    { daybedId: "vo1", cart: [] },
     { runAgentTurn: fakeRun },
   );
 
@@ -28,7 +28,7 @@ test("unknown function returns a safe response without calling the brain", async
 
   const out = await handleGeminiFunctionCall(
     { name: "autre_chose", args: {} },
-    { daybedId: "bf1", cart: [] },
+    { daybedId: "vo1", cart: [] },
     { runAgentTurn: fakeRun },
   );
 

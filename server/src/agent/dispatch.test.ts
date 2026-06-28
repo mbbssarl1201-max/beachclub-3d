@@ -21,7 +21,7 @@ test("ajouter_article adds by fuzzy name", async () => {
   const r = await dispatchTool(
     "ajouter_article",
     { nom: "mojito", qty: 2 },
-    { daybedId: "bf1", cart: [], menu: MENU },
+    { daybedId: "vo1", cart: [], menu: MENU },
   );
   expect(r.cart[0]?.qty).toBe(2);
 });
@@ -30,14 +30,14 @@ test("unknown article returns introuvable, no cart change", async () => {
   const r = await dispatchTool(
     "ajouter_article",
     { nom: "licorne" },
-    { daybedId: "bf1", cart: [], menu: MENU },
+    { daybedId: "vo1", cart: [], menu: MENU },
   );
   expect(r.result).toMatch(/introuvable/i);
   expect(r.cart).toEqual([]);
 });
 
 test("confirmer_commande on empty cart returns error result, no order", async () => {
-  const r = await dispatchTool("confirmer_commande", {}, { daybedId: "bf1", cart: [], menu: MENU });
+  const r = await dispatchTool("confirmer_commande", {}, { daybedId: "vo1", cart: [], menu: MENU });
   expect(r.confirmed).toBeUndefined();
 });
 
@@ -45,7 +45,7 @@ test("confirmer_commande with items creates an order and clears cart", async () 
   const r = await dispatchTool(
     "confirmer_commande",
     {},
-    { daybedId: "bf1", cart: [{ itemId: "mojito", name: "Mojito", qty: 1, priceChf: 18 }], menu: MENU },
+    { daybedId: "vo1", cart: [{ itemId: "mojito", name: "Mojito", qty: 1, priceChf: 18 }], menu: MENU },
   );
   expect(r.confirmed?.totalChf).toBe(18);
   expect(r.cart).toEqual([]);

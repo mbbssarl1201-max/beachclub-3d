@@ -2,6 +2,7 @@ import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { CLUB } from "../seed/club";
 import { MENU } from "../seed/menu";
+import { VENUE } from "../seed/venue";
 import {
   createReservation,
   listReservedDaybedIds,
@@ -32,6 +33,7 @@ export interface ApiDeps {
 
 export function registerApi(app: FastifyInstance, deps: ApiDeps) {
   app.get("/api/layout", async () => CLUB);
+  app.get("/api/venue", async () => VENUE);
   app.get("/api/menu", async () => MENU);
   app.get("/api/reservations", async () => listReservedDaybedIds());
   app.get("/api/orders", async () => listOrders());

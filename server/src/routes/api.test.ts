@@ -22,13 +22,13 @@ test("double reservation of same daybed returns 409", async () => {
   const first = await app.inject({
     method: "POST",
     url: "/api/reservations",
-    payload: { daybedId: "bf2", name: "A" },
+    payload: { daybedId: "vo2", name: "A" },
   });
   expect(first.statusCode).toBe(201);
   const second = await app.inject({
     method: "POST",
     url: "/api/reservations",
-    payload: { daybedId: "bf2", name: "B" },
+    payload: { daybedId: "vo2", name: "B" },
   });
   expect(second.statusCode).toBe(409);
 });
@@ -38,7 +38,7 @@ test("order with empty cart returns 400", async () => {
   const res = await app.inject({
     method: "POST",
     url: "/api/orders",
-    payload: { daybedId: "bf2", lines: [] },
+    payload: { daybedId: "vo2", lines: [] },
   });
   expect(res.statusCode).toBe(400);
 });
@@ -48,7 +48,7 @@ test("valid order returns 201 with computed total", async () => {
   const res = await app.inject({
     method: "POST",
     url: "/api/orders",
-    payload: { daybedId: "bf2", lines: [{ itemId: "mojito", name: "Mojito", qty: 2, priceChf: 18 }] },
+    payload: { daybedId: "vo2", lines: [{ itemId: "mojito", name: "Mojito", qty: 2, priceChf: 18 }] },
   });
   expect(res.statusCode).toBe(201);
   expect(res.json().totalChf).toBe(36);

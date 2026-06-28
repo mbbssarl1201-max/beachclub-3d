@@ -39,7 +39,7 @@ function fakeClient() {
 
 test("runAgentTurn executes tool calls and returns reply + updated cart", async () => {
   const res = await runAgentTurn(
-    { daybedId: "bf1", message: "2 mojitos s'il te plaît", cart: [] },
+    { daybedId: "vo1", message: "2 mojitos s'il te plaît", cart: [] },
     { client: fakeClient(), menu: MENU },
   );
   expect(res.cart[0]?.itemId).toBe("mojito");
