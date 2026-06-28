@@ -9,6 +9,7 @@ import {
   UnknownDaybedError,
 } from "../domain/reservations";
 import { createOrder, listOrders, EmptyCartError } from "../domain/orders";
+import { runAgentTurn } from "../agent/brain";
 import type { WsEvent, CartLine } from "@beachclub/shared/types";
 
 const reservationBody = z.object({ daybedId: z.string(), name: z.string().min(1) });
@@ -19,6 +20,11 @@ const cartLine = z.object({
   priceChf: z.number(),
 });
 const orderBody = z.object({ daybedId: z.string(), lines: z.array(cartLine) });
+const agentBody = z.object({
+  daybedId: z.string(),
+  message: z.string().min(1),
+  cart: z.array(cartLine).default([]),
+});
 
 export interface ApiDeps {
   onEvent: (event: WsEvent) => void;
@@ -55,5 +61,17 @@ export function registerApi(app: FastifyInstance, deps: ApiDeps) {
       if (e instanceof EmptyCartError) return reply.code(400).send({ error: e.message });
       throw e;
     }
+  });
+
+  app.post("/api/agent/message", async (req, reply) => {
+    const parsed = agentBody.safeParse(req.body);
+    if (!parsed.success) return reply.code(400).send({ error: "invalid body" });
+    const result = await runAgentTurn({
+      daybedId: parsed.data.daybedId,
+      message: parsed.data.message,
+      cart: parsed.data.cart as CartLine[],
+    });
+    if (result.order) deps.onEvent({ type: "order", order: result.order });
+    return { reply: result.reply, cart: result.cart, order: result.order ?? null };
   });
 }
