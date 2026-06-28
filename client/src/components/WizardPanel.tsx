@@ -9,8 +9,11 @@ function next14Days(): { iso: string; label: string }[] {
   const base = new Date();
   for (let i = 0; i < 14; i++) {
     const d = new Date(base.getFullYear(), base.getMonth(), base.getDate() + i);
+    // Build the ISO date from LOCAL components — toISOString() would shift to UTC
+    // and roll the date back a day in positive-offset timezones (CH summer = +2).
+    const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
     out.push({
-      iso: d.toISOString().slice(0, 10),
+      iso,
       label: d.toLocaleDateString("fr-CH", { weekday: "short", day: "2-digit", month: "short" }),
     });
   }
