@@ -10,7 +10,9 @@ services:
     environment:
       - PORT=3001
       - PGLITE_DATA=/data
-      - CLAUDE_MODEL=claude-opus-4-8
+      # Sonnet 5 : latence basse pour la boucle vocale temps réel (NFR5), le plan
+      # prévoyait déjà Sonnet pour coût/latence. Repasser sur claude-opus-4-8 si besoin.
+      - CLAUDE_MODEL=claude-sonnet-5
     volumes:
       - beachclub_data:/data
     networks:

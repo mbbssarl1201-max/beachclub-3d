@@ -3,6 +3,13 @@
 **Méthode : BMAD** · Version 1.0 · 2026-06-28 · Auteur : MBBS Sàrl
 **Type : POC de pitch** (données fictives, déploiement démo)
 
+> **Note d'état (2026-07-03)** — Le produit livré a pivoté par rapport à ce PRD sur deux points :
+> le « plan 3D interactif » (react-three-fiber) est devenu une **carte aérienne 2D pannable/zoomable
+> avec pins, façon Finns Bali** (même valeur de démo, moins de risque), et la base Postgres est
+> remplacée par **PGlite embarqué** (volume Docker `beachclub_data`). Tout le reste (agent IA voix +
+> texte, KDS temps réel, déploiement isolé) est conforme. Démo en ligne :
+> `https://beachclub.76-13-55-44.sslip.io` (en attendant le DNS `beachclub.mbbssarl.ch`).
+
 ---
 
 ## 1. Goals and Background Context

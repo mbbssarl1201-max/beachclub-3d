@@ -53,11 +53,13 @@ export async function runAgentTurn(
     { role: "user", content: args.message },
   ];
 
-  // Manual tool-use loop. No thinking config → low latency for live ordering.
+  // Manual tool-use loop. Thinking explicitly disabled → low latency for live
+  // ordering (on claude-sonnet-5, omitting `thinking` would run adaptive thinking).
   for (let guard = 0; guard < 6; guard++) {
     const res = await client.messages.create({
       model: MODEL,
       max_tokens: 1024,
+      thinking: { type: "disabled" },
       system: systemPrompt(args.daybedId, menu),
       tools: TOOLS as unknown as Anthropic.Tool[],
       messages,
