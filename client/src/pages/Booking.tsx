@@ -14,6 +14,7 @@ import { fetchInitial } from "../ws";
 import type { Venue } from "@beachclub/shared/types";
 
 export function Booking() {
+  const venue = useStore((s) => s.venue);
   const setVenue = useStore((s) => s.setVenue);
   const step = useStore((s) => s.step);
   const setStep = useStore((s) => s.setStep);
@@ -21,11 +22,22 @@ export function Booking() {
   const [cartOpen, setCartOpen] = useState(false);
   const [openPin, setOpenPin] = useState<OpenPin>(null);
   const [panelOpen, setPanelOpen] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
-  useEffect(() => {
-    fetch("/api/venue").then((r) => r.json()).then((v: Venue) => setVenue(v));
+  const load = () => {
+    setLoadError(false);
+    fetch("/api/venue")
+      .then((r) => {
+        if (!r.ok) throw new Error(String(r.status));
+        return r.json();
+      })
+      .then((v: Venue) => setVenue(v))
+      .catch(() => setLoadError(true));
     fetchInitial();
-  }, [setVenue]);
+  };
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(load, [setVenue]);
 
   // Selecting a pin advances the wizard — make sure the panel is visible for it.
   useEffect(() => {
@@ -37,6 +49,24 @@ export function Booking() {
       <AerialMap>
         <MapPins focusZone={focusZone} onOpen={setOpenPin} />
       </AerialMap>
+
+      {/* loading / error overlay while the venue isn't available */}
+      {!venue && (
+        <div className="absolute inset-0 z-40 flex items-center justify-center">
+          <div className="glass rounded-3xl px-6 py-5 text-center">
+            {loadError ? (
+              <>
+                <p className="text-sm">Impossible de charger le plan du club.</p>
+                <button onClick={load} className="mt-3 rounded-full bg-sunset px-5 py-2 text-sm font-semibold">
+                  Réessayer
+                </button>
+              </>
+            ) : (
+              <p className="animate-pulse text-sm text-white/80">Chargement du club…</p>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* pin detail card (bottom-left, clear of the wizard panel) */}
       <div className="absolute bottom-20 left-4 z-30">
@@ -80,6 +110,7 @@ export function Booking() {
             <button
               onClick={() => setPanelOpen(false)}
               title="Réduire le panneau"
+              aria-label="Réduire le panneau de réservation"
               className="glass pointer-events-auto absolute -left-3 top-3 z-30 flex h-7 w-7 items-center justify-center rounded-full text-sm"
             >
               ›

@@ -22,7 +22,7 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
           >
             <div className="flex items-center justify-between">
               <h2 className="font-display text-2xl">Votre panier</h2>
-              <button onClick={onClose} className="text-white/60">✕</button>
+              <button onClick={onClose} aria-label="Fermer le panier" className="text-white/60">✕</button>
             </div>
 
             <div className="mt-4 space-y-2 text-sm">
@@ -33,7 +33,7 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
               {s.addons.map((l) => (
                 <div key={l.itemId} className="flex justify-between">
                   <span>{l.qty}× {l.name}</span>
-                  <span className="flex gap-2">{l.qty * l.priceChf}.- <button onClick={() => s.removeAddon(l.itemId)} className="text-sunset">✕</button></span>
+                  <span className="flex gap-2">{l.qty * l.priceChf}.- <button onClick={() => s.removeAddon(l.itemId)} aria-label={`Retirer ${l.name}`} className="text-sunset">✕</button></span>
                 </div>
               ))}
               {s.promo && discount > 0 && <div className="flex justify-between text-lagoon"><span>Promo {s.promo}</span><span>−{discount}.-</span></div>}

@@ -57,9 +57,10 @@ export function ChatPanel({ daybedId }: { daybedId: string }) {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && send()}
           placeholder="Ex : 2 mojitos et un ceviche"
+          aria-label="Message à l'agent"
           className="flex-1 rounded-full bg-white/15 px-4 py-2 text-sm placeholder-white/50 outline-none"
         />
-        <button onClick={send} className="rounded-full bg-sunset px-4 py-2 text-sm font-semibold">
+        <button onClick={send} aria-label="Envoyer le message" className="rounded-full bg-sunset px-4 py-2 text-sm font-semibold">
           →
         </button>
       </div>

@@ -68,9 +68,9 @@ export function AerialMap({ children }: { children: ReactNode }) {
 
       {/* zoom controls */}
       <div className="absolute bottom-28 right-4 z-20 flex flex-col gap-1 sm:bottom-6 sm:right-20">
-        <button onClick={() => setZoom((z) => clampZoom(z + 0.3))} className="glass h-10 w-10 rounded-full text-xl">+</button>
-        <button onClick={() => setZoom((z) => clampZoom(z - 0.3))} className="glass h-10 w-10 rounded-full text-xl">−</button>
-        <button onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }} className="glass h-10 w-10 rounded-full text-xs">⟲</button>
+        <button onClick={() => setZoom((z) => clampZoom(z + 0.3))} aria-label="Zoomer" className="glass h-10 w-10 rounded-full text-xl">+</button>
+        <button onClick={() => setZoom((z) => clampZoom(z - 0.3))} aria-label="Dézoomer" className="glass h-10 w-10 rounded-full text-xl">−</button>
+        <button onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }} aria-label="Réinitialiser la vue" className="glass h-10 w-10 rounded-full text-xs">⟲</button>
       </div>
     </div>
   );

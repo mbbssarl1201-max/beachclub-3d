@@ -8,21 +8,30 @@ export function Cart({ daybedId }: { daybedId: string }) {
   const clearCart = useStore((s) => s.clearCart);
   const [sent, setSent] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const order = async () => {
     if (cart.length === 0) return;
     setBusy(true);
-    const res = await fetch("/api/orders", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ daybedId, lines: cart }),
-    });
-    setBusy(false);
-    if (res.status === 201) {
-      clearCart();
-      setSent(true);
-      setTimeout(() => setSent(false), 3500);
+    setError(null);
+    try {
+      const res = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ daybedId, lines: cart }),
+      });
+      if (res.status === 201) {
+        clearCart();
+        setSent(true);
+        setTimeout(() => setSent(false), 3500);
+      } else {
+        const body = await res.json().catch(() => null);
+        setError(body?.error ?? "Commande refusée, réessayez.");
+      }
+    } catch {
+      setError("Réseau indisponible — commande non envoyée.");
     }
+    setBusy(false);
   };
 
   return (
@@ -40,6 +49,7 @@ export function Cart({ daybedId }: { daybedId: string }) {
           </motion.p>
         )}
       </AnimatePresence>
+      {error && <p className="mt-1 text-sm text-sunset">{error}</p>}
 
       <div className="mt-3 space-y-2">
         {cart.length === 0 && <p className="text-sm text-white/50">Panier vide.</p>}
@@ -57,7 +67,7 @@ export function Cart({ daybedId }: { daybedId: string }) {
               </span>
               <span className="flex items-center gap-3">
                 <span className="text-white/70">{l.qty * l.priceChf}.-</span>
-                <button onClick={() => removeLine(l.itemId)} className="text-sunset">
+                <button onClick={() => removeLine(l.itemId)} aria-label={`Retirer ${l.name}`} className="text-sunset">
                   ✕
                 </button>
               </span>

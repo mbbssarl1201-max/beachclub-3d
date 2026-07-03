@@ -192,9 +192,9 @@ export function WizardPanel({
                       <div key={a.id} className="rounded-xl bg-white/8 p-2 text-xs">
                         <div className="flex justify-between"><span>{a.name}</span><span className="text-white/60">{a.priceChf}.-</span></div>
                         <div className="mt-1 flex items-center justify-between">
-                          <button onClick={() => s.removeAddon(a.id)} className="h-6 w-6 rounded-full bg-white/10">−</button>
+                          <button onClick={() => s.removeAddon(a.id)} aria-label={`Retirer ${a.name}`} className="h-6 w-6 rounded-full bg-white/10">−</button>
                           <span>{line?.qty ?? 0}</span>
-                          <button onClick={() => s.addAddon(a)} className="h-6 w-6 rounded-full bg-lagoon">+</button>
+                          <button onClick={() => s.addAddon(a)} aria-label={`Ajouter ${a.name}`} className="h-6 w-6 rounded-full bg-lagoon">+</button>
                         </div>
                       </div>
                     );
@@ -280,5 +280,5 @@ function NextBtn({ children, onClick, disabled }: { children: React.ReactNode; o
   return <button onClick={onClick} disabled={disabled} className="mt-4 flex-1 rounded-full bg-sunset py-3 font-semibold disabled:opacity-40">{children}</button>;
 }
 function BackBtn({ onClick }: { onClick: () => void }) {
-  return <button onClick={onClick} className="mt-4 rounded-full bg-white/10 px-4 py-3 text-sm">←</button>;
+  return <button onClick={onClick} aria-label="Étape précédente" className="mt-4 rounded-full bg-white/10 px-4 py-3 text-sm">←</button>;
 }

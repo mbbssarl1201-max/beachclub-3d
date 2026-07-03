@@ -28,10 +28,14 @@ export function connectWs(): () => void {
 }
 
 export async function fetchInitial(): Promise<void> {
-  const [reserved, orders] = await Promise.all([
-    fetch("/api/reservations").then((r) => r.json()),
-    fetch("/api/orders").then((r) => r.json()),
-  ]);
-  useStore.getState().setReserved(reserved);
-  useStore.getState().setOrders(orders);
+  try {
+    const [reserved, orders] = await Promise.all([
+      fetch("/api/reservations").then((r) => r.json()),
+      fetch("/api/orders").then((r) => r.json()),
+    ]);
+    useStore.getState().setReserved(reserved);
+    useStore.getState().setOrders(orders);
+  } catch {
+    // Non-fatal: live WS events still update the store; screens start empty.
+  }
 }
