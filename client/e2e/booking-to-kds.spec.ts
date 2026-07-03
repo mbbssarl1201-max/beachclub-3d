@@ -2,8 +2,9 @@ import { test, expect } from "@playwright/test";
 
 // Happy path: reserve a daybed → order via tap-to-add → see it appear live on the KDS.
 test("book a daybed, order, and see it on the KDS", async ({ page, context }) => {
-  // Pick a daybed id unlikely to collide across runs.
-  const daybedId = "ps3";
+  // A real daybed from the seed — the server now rejects unknown ids (404).
+  // Orders don't lock the daybed, so reruns can't collide.
+  const daybedId = "su2";
 
   // Open the KDS in a second tab first so we can observe the live broadcast.
   const kds = await context.newPage();

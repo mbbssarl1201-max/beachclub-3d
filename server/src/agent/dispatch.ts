@@ -1,6 +1,7 @@
 import type { CartLine, MenuItem, Order } from "@beachclub/shared/types";
 import { addItem, removeItem, cartTotal } from "../domain/cart";
 import { createOrder, EmptyCartError } from "../domain/orders";
+import { UnknownDaybedError } from "../domain/reservations";
 
 export interface DispatchCtx {
   daybedId: string;
@@ -62,6 +63,8 @@ export async function dispatchTool(
       } catch (e) {
         if (e instanceof EmptyCartError)
           return { cart: ctx.cart, result: "Impossible de confirmer: le panier est vide." };
+        if (e instanceof UnknownDaybedError)
+          return { cart: ctx.cart, result: "Impossible de confirmer: emplacement inconnu. Demandez au client de scanner le QR code de son daybed." };
         throw e;
       }
     }

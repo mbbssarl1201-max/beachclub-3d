@@ -61,11 +61,14 @@ export function registerApi(app: FastifyInstance, deps: ApiDeps) {
       return reply.code(201).send(order);
     } catch (e) {
       if (e instanceof EmptyCartError) return reply.code(400).send({ error: e.message });
+      if (e instanceof UnknownDaybedError) return reply.code(404).send({ error: e.message });
       throw e;
     }
   });
 
-  app.post("/api/agent/message", async (req, reply) => {
+  // Each message triggers a Claude tool-use loop — rate-limit per IP.
+  const agentRateLimit = { rateLimit: { max: 20, timeWindow: "1 minute" } };
+  app.post("/api/agent/message", { config: agentRateLimit }, async (req, reply) => {
     const parsed = agentBody.safeParse(req.body);
     if (!parsed.success) return reply.code(400).send({ error: "invalid body" });
     const result = await runAgentTurn({

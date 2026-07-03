@@ -4,6 +4,7 @@ import { existsSync } from "node:fs";
 import Fastify, { type FastifyInstance } from "fastify";
 import websocket from "@fastify/websocket";
 import fastifyStatic from "@fastify/static";
+import rateLimit from "@fastify/rate-limit";
 import { migrate } from "./db/client";
 import { registerApi } from "./routes/api";
 import { createHub, type Hub } from "./realtime/hub";
@@ -15,6 +16,9 @@ export async function buildServer(): Promise<{ app: FastifyInstance; hub: Hub }>
 
   await migrate();
   await app.register(websocket);
+  // Opt-in per route (global: false) — only the LLM endpoint is limited, so a
+  // public scan of the demo URL can't burn API budget.
+  await app.register(rateLimit, { global: false });
 
   app.get("/health", async () => ({ ok: true }));
   registerApi(app, { onEvent: hub.broadcast });

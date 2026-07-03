@@ -2,6 +2,8 @@ import { eq } from "drizzle-orm";
 import { db } from "../db/client";
 import { orders } from "../db/schema";
 import { cartTotal } from "./cart";
+import { CLUB } from "../seed/club";
+import { UnknownDaybedError } from "./reservations";
 import type { CartLine, Order } from "@beachclub/shared/types";
 
 export class EmptyCartError extends Error {
@@ -13,6 +15,7 @@ export class EmptyCartError extends Error {
 
 export async function createOrder(daybedId: string, lines: CartLine[]): Promise<Order> {
   if (lines.length === 0) throw new EmptyCartError();
+  if (!CLUB.some((d) => d.id === daybedId)) throw new UnknownDaybedError(daybedId);
   const row = {
     id: crypto.randomUUID(),
     daybedId,

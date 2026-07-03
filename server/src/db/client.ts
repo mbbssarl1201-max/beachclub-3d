@@ -25,4 +25,13 @@ export async function migrate(): Promise<void> {
       created_at timestamp NOT NULL DEFAULT now()
     );
   `);
+  // Anti-double-booking at the DB level. Guarded: an existing volume may already
+  // contain duplicates, in which case we keep running on the check-then-insert path.
+  try {
+    await pg.exec(
+      "CREATE UNIQUE INDEX IF NOT EXISTS reservations_daybed_unique ON reservations (daybed_id);",
+    );
+  } catch (e) {
+    console.warn("[beachclub] unique index on reservations.daybed_id not created:", e);
+  }
 }

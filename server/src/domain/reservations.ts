@@ -27,7 +27,14 @@ export async function createReservation(daybedId: string, name: string): Promise
   if (existing.length > 0) throw new DaybedTakenError(daybedId);
 
   const row = { id: crypto.randomUUID(), daybedId, name };
-  await db.insert(reservations).values(row);
+  try {
+    await db.insert(reservations).values(row);
+  } catch (e) {
+    // Unique index on daybed_id: a concurrent insert between check and insert
+    // lands here instead of double-booking.
+    if (e instanceof Error && /unique|duplicate/i.test(e.message)) throw new DaybedTakenError(daybedId);
+    throw e;
+  }
   const [saved] = await db.select().from(reservations).where(eq(reservations.id, row.id));
   return { ...saved, createdAt: saved.createdAt.toISOString() };
 }
