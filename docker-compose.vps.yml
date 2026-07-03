@@ -1,0 +1,29 @@
+services:
+  beachclub:
+    build:
+      context: .
+    image: beachclub-3d:latest
+    container_name: beachclub-3d
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - PORT=3001
+      - PGLITE_DATA=/data
+      - CLAUDE_MODEL=claude-opus-4-8
+    volumes:
+      - beachclub_data:/data
+    networks:
+      - internal
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.beachclub.rule=Host(`beachclub.76-13-55-44.sslip.io`)
+      - traefik.http.routers.beachclub.entrypoints=websecure
+      - traefik.http.routers.beachclub.tls.certresolver=letsencrypt
+      - traefik.http.services.beachclub.loadbalancer.server.port=3001
+
+networks:
+  internal:
+
+volumes:
+  beachclub_data: {}
