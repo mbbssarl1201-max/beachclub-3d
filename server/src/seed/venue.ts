@@ -1,4 +1,5 @@
-import type { Venue, Zone, Furniture, Hotspot, AddOn } from "@beachclub/shared/types";
+import type { Venue, Zone, Furniture, Hotspot } from "@beachclub/shared/types";
+import { MENU } from "./menu";
 
 // Fictional beach club "Lagune". Coordinates are percentages over the aerial image.
 // Mirrors the Finns booking pattern: zones of bookable furniture + points-of-interest pins.
@@ -74,20 +75,5 @@ const hotspots: Hotspot[] = [
   { id: "h-beach-access", label: "Beach Access", kind: "zone", x: 60, y: 93 },
 ];
 
-// Add-ons: food, drinks and bottle service.
-const addons: AddOn[] = [
-  { id: "mojito", name: "Mojito", category: "cocktail", priceChf: 18 },
-  { id: "spritz", name: "Aperol Spritz", category: "cocktail", priceChf: 16 },
-  { id: "pina", name: "Piña Colada", category: "cocktail", priceChf: 19 },
-  { id: "ceviche", name: "Ceviche de daurade", category: "food", priceChf: 24 },
-  { id: "poke", name: "Poke bowl saumon", category: "food", priceChf: 22 },
-  { id: "gambas", name: "Gambas grillées", category: "food", priceChf: 28 },
-  { id: "fries", name: "Frites truffe", category: "food", priceChf: 12 },
-  { id: "coco", name: "Noix de coco fraîche", category: "soft", priceChf: 9 },
-  { id: "eau", name: "Eau pétillante", category: "soft", priceChf: 6 },
-  { id: "champagne", name: "Bouteille Champagne brut", category: "bottle", priceChf: 220 },
-  { id: "vodka", name: "Bouteille Vodka premium", category: "bottle", priceChf: 280 },
-  { id: "rose", name: "Magnum rosé", category: "bottle", priceChf: 180 },
-];
-
-export const VENUE: Venue = { name: "Lagune", zones, furniture, hotspots, addons };
+// Add-ons = the shared MENU, so the wizard sells exactly what the agent can serve.
+export const VENUE: Venue = { name: "Lagune", zones, furniture, hotspots, addons: MENU };

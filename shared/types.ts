@@ -9,7 +9,7 @@ export interface Daybed {
   capacity: number;
 }
 
-export type MenuCategory = "cocktail" | "food" | "soft";
+export type MenuCategory = "cocktail" | "food" | "soft" | "bottle";
 
 export interface MenuItem {
   id: string;
@@ -89,12 +89,8 @@ export interface Hotspot {
   zoneId?: string;
 }
 
-export interface AddOn {
-  id: string;
-  name: string;
-  category: "food" | "cocktail" | "soft" | "bottle";
-  priceChf: number;
-}
+/** Add-ons share the MenuItem shape — MENU is the single source for both. */
+export type AddOn = MenuItem;
 
 export interface Venue {
   name: string;
