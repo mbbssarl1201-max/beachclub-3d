@@ -7,8 +7,8 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      "/api": "http://localhost:3001",
-      "/ws": { target: "ws://localhost:3001", ws: true },
+      "/api": `http://localhost:${process.env.API_PORT ?? 3001}`,
+      "/ws": { target: `ws://localhost:${process.env.API_PORT ?? 3001}`, ws: true },
     },
   },
   test: {
