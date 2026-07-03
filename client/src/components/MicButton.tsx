@@ -16,6 +16,60 @@ function floatToBase64PCM(input: Float32Array): string {
   return btoa(bin);
 }
 
+// Decodes a base64 16-bit PCM frame (Gemini Live output, 24 kHz) to Float32.
+function base64PCMToFloat(data: string): Float32Array {
+  const bin = atob(data);
+  const samples = new Float32Array(bin.length / 2);
+  for (let i = 0; i < samples.length; i++) {
+    let v = bin.charCodeAt(i * 2) | (bin.charCodeAt(i * 2 + 1) << 8);
+    if (v >= 0x8000) v -= 0x10000;
+    samples[i] = v / 0x8000;
+  }
+  return samples;
+}
+
+const GEMINI_OUTPUT_RATE = 24000;
+
+/** Sequential playback queue for the agent's voice, with barge-in flush. */
+class VoicePlayer {
+  private ctx = new AudioContext({ sampleRate: GEMINI_OUTPUT_RATE });
+  private nextStart = 0;
+  private playing = new Set<AudioBufferSourceNode>();
+
+  enqueue(base64: string) {
+    const samples = base64PCMToFloat(base64);
+    if (samples.length === 0) return;
+    const buffer = this.ctx.createBuffer(1, samples.length, GEMINI_OUTPUT_RATE);
+    buffer.getChannelData(0).set(samples);
+    const src = this.ctx.createBufferSource();
+    src.buffer = buffer;
+    src.connect(this.ctx.destination);
+    this.playing.add(src);
+    src.onended = () => this.playing.delete(src);
+    const at = Math.max(this.ctx.currentTime, this.nextStart);
+    src.start(at);
+    this.nextStart = at + buffer.duration;
+  }
+
+  /** Barge-in: drop everything queued or playing. */
+  flush() {
+    for (const src of this.playing) {
+      try {
+        src.stop();
+      } catch {
+        /* already stopped */
+      }
+    }
+    this.playing.clear();
+    this.nextStart = 0;
+  }
+
+  close() {
+    this.flush();
+    this.ctx.close();
+  }
+}
+
 export function MicButton({ daybedId, onFallback }: { daybedId: string; onFallback: () => void }) {
   const [active, setActive] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
@@ -48,10 +102,14 @@ export function MicButton({ daybedId, onFallback }: { daybedId: string; onFallba
       src.connect(proc);
       proc.connect(ctx.destination);
 
+      const player = new VoicePlayer();
+
       ws.onmessage = (ev) => {
         try {
           const f = JSON.parse(ev.data);
-          if (f.type === "cart" && Array.isArray(f.cart)) setCart(f.cart as CartLine[]);
+          if (f.type === "audio" && f.data) player.enqueue(f.data);
+          else if (f.type === "interrupted") player.flush();
+          else if (f.type === "cart" && Array.isArray(f.cart)) setCart(f.cart as CartLine[]);
           else if (f.type === "error") {
             stop();
             onFallback();
@@ -69,6 +127,7 @@ export function MicButton({ daybedId, onFallback }: { daybedId: string; onFallba
         proc.disconnect();
         src.disconnect();
         ctx.close();
+        player.close();
         stream.getTracks().forEach((t) => t.stop());
       };
       setActive(true);
@@ -84,6 +143,7 @@ export function MicButton({ daybedId, onFallback }: { daybedId: string; onFallba
         active ? "animate-pulse bg-sunset" : "bg-lagoon"
       }`}
       title={active ? "Arrêter" : "Parler à l'agent"}
+      aria-label={active ? "Arrêter la commande vocale" : "Parler à l'agent"}
     >
       {active ? "■" : "🎙"}
     </button>

@@ -63,6 +63,9 @@ export async function handleGeminiFunctionCall(
  * reply is sent back to Gemini, the updated cart is pushed to the browser, and a
  * confirmed order is broadcast to the KDS via the hub.
  */
+const MAX_VOICE_SESSIONS = Number(process.env.MAX_VOICE_SESSIONS ?? 4);
+let activeVoiceSessions = 0;
+
 export function attachVoiceProxy(app: FastifyInstance, hub: Hub): void {
   app.register(async (scoped) => {
     scoped.get("/ws/voice", { websocket: true }, async (socket, req) => {
@@ -73,6 +76,20 @@ export function attachVoiceProxy(app: FastifyInstance, hub: Hub): void {
         socket.close();
         return;
       }
+      // Each connection opens a paid Gemini Live session — cap them.
+      if (activeVoiceSessions >= MAX_VOICE_SESSIONS) {
+        socket.send(JSON.stringify({ type: "error", message: "toutes les lignes vocales sont occupées, réessayez dans un instant" }));
+        socket.close();
+        return;
+      }
+      activeVoiceSessions++;
+      let released = false;
+      const release = () => {
+        if (!released) {
+          released = true;
+          activeVoiceSessions--;
+        }
+      };
 
       let cart: CartLine[] = [];
       let session: any;
@@ -92,7 +109,10 @@ export function attachVoiceProxy(app: FastifyInstance, hub: Hub): void {
           callbacks: {
             onopen: () => {},
             onmessage: async (msg: any) => {
-              // Forward Gemini audio to the browser.
+              // Barge-in: the client must drop its queued audio when Gemini is interrupted.
+              if (msg.serverContent?.interrupted) socket.send(JSON.stringify({ type: "interrupted" }));
+
+              // Forward Gemini audio to the browser (PCM16 24 kHz, base64).
               const audio = msg.data ?? msg.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data;
               if (audio) socket.send(JSON.stringify({ type: "audio", data: audio }));
 
@@ -122,6 +142,7 @@ export function attachVoiceProxy(app: FastifyInstance, hub: Hub): void {
           },
         });
       } catch (e) {
+        release();
         socket.send(JSON.stringify({ type: "error", message: "connexion voix échouée" }));
         socket.close();
         return;
@@ -140,7 +161,10 @@ export function attachVoiceProxy(app: FastifyInstance, hub: Hub): void {
           /* ignore malformed frames */
         }
       });
-      socket.on("close", () => session?.close());
+      socket.on("close", () => {
+        release();
+        session?.close();
+      });
     });
   });
 }
