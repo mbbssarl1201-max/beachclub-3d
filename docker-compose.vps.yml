@@ -19,7 +19,7 @@ services:
       - internal
     labels:
       - traefik.enable=true
-      - traefik.http.routers.beachclub.rule=Host(`beachclub.76-13-55-44.sslip.io`)
+      - traefik.http.routers.beachclub.rule=Host(`beachclub.mbbssarl.ch`) || Host(`beachclub.76-13-55-44.sslip.io`)
       - traefik.http.routers.beachclub.entrypoints=websecure
       - traefik.http.routers.beachclub.tls.certresolver=letsencrypt
       - traefik.http.services.beachclub.loadbalancer.server.port=3001
