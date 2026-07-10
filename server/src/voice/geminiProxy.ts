@@ -3,7 +3,7 @@ import { runAgentTurn as defaultRunAgentTurn } from "../agent/brain";
 import type { Hub } from "../realtime/hub";
 import type { CartLine, Order } from "@beachclub/shared/types";
 
-const GEMINI_MODEL = process.env.GEMINI_LIVE_MODEL ?? "gemini-live-2.5-flash-native-audio";
+const GEMINI_MODEL = process.env.GEMINI_LIVE_MODEL ?? "gemini-2.5-flash-native-audio-preview-09-2025";
 
 // The single function Gemini Live is allowed to call. Reasoning is delegated to Claude.
 export const VOICE_FUNCTION = {
@@ -103,7 +103,10 @@ export function attachVoiceProxy(app: FastifyInstance, hub: Hub): void {
             responseModalities: [Modality.AUDIO],
             systemInstruction:
               `Tu es le serveur vocal du beach club Lagune, daybed ${daybedId}. ` +
-              "Sois chaleureux et bref. Pour toute demande d'articles, appelle passer_commande avec le texte du client.",
+              "Sois chaleureux et bref. Détecte la langue du client et réponds TOUJOURS dans sa langue, " +
+              "quelle qu'elle soit (français, anglais, allemand, italien, espagnol, arabe, russe…). " +
+              "Pour toute demande d'articles, appelle passer_commande avec le texte du client ; " +
+              "si la réponse de passer_commande est dans une autre langue, traduis-la oralement dans la langue du client.",
             tools: [{ functionDeclarations: [VOICE_FUNCTION as any] }],
           },
           callbacks: {
@@ -116,29 +119,54 @@ export function attachVoiceProxy(app: FastifyInstance, hub: Hub): void {
               const audio = msg.data ?? msg.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data;
               if (audio) socket.send(JSON.stringify({ type: "audio", data: audio }));
 
-              // Handle function calls by delegating to Claude.
+              // Handle function calls by delegating to Claude. A brain failure must never
+              // kill the process — reply through Gemini so the customer hears an apology.
               const calls = msg.toolCall?.functionCalls ?? [];
               for (const call of calls) {
-                const out = await handleGeminiFunctionCall(
-                  { name: call.name, args: call.args },
-                  { daybedId, cart },
-                  { runAgentTurn: defaultRunAgentTurn },
-                );
-                cart = out.cart;
-                socket.send(JSON.stringify({ type: "cart", cart }));
-                if (out.order) {
-                  hub.broadcast({ type: "order", order: out.order });
-                  socket.send(JSON.stringify({ type: "order", order: out.order }));
+                try {
+                  const out = await handleGeminiFunctionCall(
+                    { name: call.name, args: call.args },
+                    { daybedId, cart },
+                    { runAgentTurn: defaultRunAgentTurn },
+                  );
+                  cart = out.cart;
+                  socket.send(JSON.stringify({ type: "cart", cart }));
+                  if (out.order) {
+                    hub.broadcast({ type: "order", order: out.order });
+                    socket.send(JSON.stringify({ type: "order", order: out.order }));
+                  }
+                  session?.sendToolResponse({
+                    functionResponses: [
+                      { id: call.id, name: call.name, response: out.functionResponse.response },
+                    ],
+                  });
+                } catch (err: any) {
+                  req.log.error({ err }, "voice: passer_commande failed");
+                  session?.sendToolResponse({
+                    functionResponses: [
+                      {
+                        id: call.id,
+                        name: call.name,
+                        response: {
+                          reply:
+                            "Je suis désolé, le service de commande est momentanément indisponible. Réessayez dans un instant.",
+                        },
+                      },
+                    ],
+                  });
                 }
-                session?.sendToolResponse({
-                  functionResponses: [
-                    { id: call.id, name: call.name, response: out.functionResponse.response },
-                  ],
-                });
               }
             },
             onerror: (e: any) => socket.send(JSON.stringify({ type: "error", message: String(e?.message ?? e) })),
-            onclose: () => socket.close(),
+            onclose: (e: any) => {
+              // Surface the close reason (quota, bad model…) instead of a silent hang-up.
+              if (e?.reason) {
+                try {
+                  socket.send(JSON.stringify({ type: "error", message: `session voix fermée : ${e.reason}` }));
+                } catch { /* socket may already be closed */ }
+              }
+              socket.close();
+            },
           },
         });
       } catch (e) {
